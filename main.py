@@ -9,6 +9,8 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 import warnings
 from sklearn.exceptions import UndefinedMetricWarning
 import numpy as np
+from NaiveBayesText import NaiveBayesText
+
 
 def NaNsDetector(dataset):
     nan_count = dataset.isnull().sum()
@@ -20,6 +22,8 @@ def NaNsDetector(dataset):
     nan_rows = dataset[dataset.isnull().any(axis=1)]
     print("\nFilas con NaNs:")
     print(nan_rows)
+    dataset.dropna(inplace=True)
+
 
 def main():
     # Load datasets
@@ -33,15 +37,14 @@ def main():
     X = dfProcessed.drop('sentimentLabel', axis=1).to_numpy()
     y = dfProcessed['sentimentLabel'].to_numpy()
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    X_train[:, 1] = X_train[:, 1].astype(str)
+    X_test[:, 1] = X_test[:, 1].astype(str)
 
+    clf = NaiveBayesText()
+    clf.fit(X_train, y_train)
 
-
-
-
-
-
-
-
+    # Predict the sentiment labels for the test data
+    y_pred = clf.predict(X_test)
 
 
 if __name__ == "__main__":
