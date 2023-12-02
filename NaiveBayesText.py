@@ -1,36 +1,34 @@
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.preprocessing import LabelBinarizer
 
 
-class NaiveBayesText:
-    def __init__(self):
-        self.vocab = []
-        self.prob_v = {}
-        self.prob_w_v = {}
+class NaiveBayesText():
+    def __init__(self, alpha=1, max_features=None):
+        self.alpha = alpha  # Laplace Smoothing
+        self.Cnt_Vec = CountVectorizer(max_features=max_features)
+        self.lbl = LabelBinarizer()
 
-    def fit(self, X, y):
-        # Use CountVectorizer to get word counts
-        vectorizer = CountVectorizer()
-        X_vec = vectorizer.fit_transform(X[:, 1])
-        self.vocab = vectorizer.get_feature_names_out()
-        V = list(set(y))
+    def fit(self, X_train, y_train):
+        BOW_train = self.Cnt_Vec.fit_transform(X_train)
+        train_Y = self.lbl.fit_transform(y_train)
+        if train_Y.shape[1] == 1:
+            train_Y = np.concatenate([1 - train_Y, train_Y], axis=1)
 
-        # Calculate the required P(vj) and P(wk | vj) probability terms.
-        for vj in V:
-            docs_j = [X[i, 1] for i in range(len(X)) if y[i] == vj]
-            self.prob_v[vj] = len(docs_j) / len(X)
-            text_j = " ".join(docs_j)
-            n = len(text_j.split())
-            self.prob_w_v[vj] = {}
-            for wk in self.vocab:
-                nk = text_j.count(wk)
-                self.prob_w_v[vj][wk] = (nk + 1) / (n + len(self.vocab))
+        # Calculate cat_count_arr without storing it as an instance variable
+        cat_count_arr = np.log(np.sum(train_Y, axis=0) / np.sum(train_Y))
 
-    def predict(self, Doc):
-        positions = [i for i in range(len(self.vocab)) if self.vocab[i] in Doc.split()]
-        scores = {}
-        for vj in self.prob_v.keys():
-            scores[vj] = self.prob_v[vj]
-            for i in positions:
-                scores[vj] *= self.prob_w_v[vj][self.vocab[i]]
-        return max(scores, key=scores.get)
+        # Use sparse matrix multiplication directly
+        consolidated_train_df = train_Y.T @ BOW_train
+
+        prob_table_numer = consolidated_train_df + self.alpha
+        prob_table_denom = np.sum(prob_table_numer, axis=1)
+        prob_table = np.log(prob_table_numer) - np.log(prob_table_denom.reshape(-1, 1))
+
+        # Return cat_count_arr and prob_table
+        return cat_count_arr, prob_table
+
+    def predict(self, X_test, cat_count_arr, prob_table):
+        BOW_test = self.Cnt_Vec.transform(X_test)
+        predict_arr = self.lbl.classes_[np.argmax(BOW_test @ prob_table.T + cat_count_arr, axis=1)]
+        return predict_arr
