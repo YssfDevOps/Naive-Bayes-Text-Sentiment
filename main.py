@@ -47,7 +47,7 @@ def main():
 
     classifierKK = MultinomialNB()
     classifierKK.fit(X_train_vec, y_train)
-    predictionsKK = classifier.predict(X_test_vec)
+    predictionsKK = classifierKK.predict(X_test_vec)
 
     # Calculate accuracy
     accuracyr = accuracy_score(y_test, predictionsKK)
