@@ -1,34 +1,52 @@
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelBinarizer
 
 
 class NaiveBayesText():
     def __init__(self, alpha=1, max_features=None):
+        self.max_features = max_features
         self.alpha = alpha  # Laplace Smoothing
-        self.Cnt_Vec = CountVectorizer(max_features=max_features)
-        self.lbl = LabelBinarizer()
+        self.vectorizer = CountVectorizer(max_features=self.max_features)
+        self.label_binarizer = LabelBinarizer()
+        self.log_prior = None
+        self.log_likelihood = None
+
+    def get_params(self, deep=True):
+        return {"alpha": self.alpha, "max_features": self.max_features}
+
+    def score(self, X, y_test):
+        y_pred = self.predict(X)
+        return accuracy_score(y_test, y_pred)
 
     def fit(self, X_train, y_train):
-        BOW_train = self.Cnt_Vec.fit_transform(X_train)
-        train_Y = self.lbl.fit_transform(y_train)
-        if train_Y.shape[1] == 1:
-            train_Y = np.concatenate([1 - train_Y, train_Y], axis=1)
+        # Transform the text data into a dictionary
+        bag_of_words_train = self.vectorizer.fit_transform(X_train)
 
-        # Calculate cat_count_arr without storing it as an instance variable
-        cat_count_arr = np.log(np.sum(train_Y, axis=0) / np.sum(train_Y))
+        # Transform the labels into a binary format
+        binarized_labels = self.label_binarizer.fit_transform(y_train)
 
-        # Use sparse matrix multiplication directly
-        consolidated_train_df = train_Y.T @ BOW_train
+        # If there are only two classes, duplicate the column to have two columns
+        if binarized_labels.shape[1] == 1:
+            binarized_labels = np.concatenate([1 - binarized_labels, binarized_labels], axis=1)
 
-        prob_table_numer = consolidated_train_df + self.alpha
-        prob_table_denom = np.sum(prob_table_numer, axis=1)
-        prob_table = np.log(prob_table_numer) - np.log(prob_table_denom.reshape(-1, 1))
+        # Calculate the prior for each class
+        self.log_prior = np.log(np.sum(binarized_labels, axis=0) / np.sum(binarized_labels))
 
-        # Return cat_count_arr and prob_table
-        return cat_count_arr, prob_table
+        # Calculate the frequency for each class
+        term_frequency_per_class = binarized_labels.T @ bag_of_words_train
 
-    def predict(self, X_test, cat_count_arr, prob_table):
-        BOW_test = self.Cnt_Vec.transform(X_test)
-        predict_arr = self.lbl.classes_[np.argmax(BOW_test @ prob_table.T + cat_count_arr, axis=1)]
-        return predict_arr
+        # Calculate the likelihood
+        likelihood_numerator = term_frequency_per_class + self.alpha
+        likelihood_denominator = np.sum(likelihood_numerator, axis=1)
+        self.log_likelihood = np.log(likelihood_numerator) - np.log(likelihood_denominator.reshape(-1, 1))
+
+    def predict(self, X_test):
+        # Transform the test data into a bag-of-words (like a dictionary)
+        bag_of_words_test = self.vectorizer.transform(X_test)
+
+        # Calculate the posterior probability for each class and return the class with the highest probability
+        predicted_class = self.label_binarizer.classes_[
+            np.argmax(bag_of_words_test @ self.log_likelihood.T + self.log_prior, axis=1)]
+        return predicted_class
