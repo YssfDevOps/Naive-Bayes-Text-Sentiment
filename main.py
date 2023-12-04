@@ -1,15 +1,12 @@
 __authors__ = ['1638618']
-__group__ = 'GM08:30_3'
 
 import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.impute import SimpleImputer
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score, precision_score, recall_score
 import numpy as np
 from sklearn.model_selection import LeaveOneOut
-from sklearn.naive_bayes import MultinomialNB
+
 
 from NaiveBayesText import NaiveBayesText
 
@@ -49,7 +46,7 @@ def main():
     dtypesProcessed = {'tweetId': 'int', 'tweetText': 'str', 'tweetDate': 'str', 'sentimentLabel': 'int'}
     dfProcessed = pd.read_csv('FinalStemmedSentimentAnalysisDataset.csv', delimiter=';', dtype=dtypesProcessed)
 
-    print("Comprobar NaNs i limpiarlos eliminando las filas que tienen NaNs")
+    print("########################### NaN Treatment STARTED ##################################")
     NaNsDetector(dfProcessed)
     print("########################### NaN Treatment FINALIZADO ##################################")
 
