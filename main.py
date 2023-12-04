@@ -56,7 +56,7 @@ def main():
 
     print("############################## APARTADO C ####################################")
     print("CROSS VALIDATION - METRIC: ACCURACY")
-    C_NBT_CV = NaiveBayesText(alpha=1e-10, max_features=None)
+    C_NBT_CV = NaiveBayesText(alpha=1e-10, max_features=None)  # Posem 1e-10 per simular que es zero (NO APLIQUEM LAPLACE SMOOTHING).
     C_NBT_CV.fit(X_train, y_train)
     # Perform cross-validation
     cross_val_scores = cross_validation(C_NBT_CV, X, y, cv=10)
@@ -102,7 +102,7 @@ def main():
     for train_size in train_sizes:
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=1 - train_size, random_state=42, stratify=y)
         for dict_size in dict_sizes:
-            B_NBT_CV = NaiveBayesText(alpha=1e-10, max_features=dict_size)
+            B_NBT_CV = NaiveBayesText(alpha=1e-10, max_features=dict_size)  # Posem 1e-10 per simular que es zero (NO APLIQUEM LAPLACE SMOOTHING).
             B_NBT_CV.fit(X_train, y_train)
             # Perform cross-validation
             cross_val_scores = cross_validation(B_NBT_CV, X, y, cv=10)
@@ -130,7 +130,7 @@ def main():
     for train_size in train_sizes:
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=1 - train_size, random_state=42, stratify=y)
         for dict_size in dict_sizes:
-            A_NBT_CV = NaiveBayesText(alpha=1, max_features=dict_size)
+            A_NBT_CV = NaiveBayesText(alpha=1, max_features=dict_size)  # ARA SI APLIQUEM LAPLACE SMOOTHING.
             A_NBT_CV.fit(X_train, y_train)
             # Perform cross-validation
             cross_val_scores = cross_validation(A_NBT_CV, X, y, cv=10)
