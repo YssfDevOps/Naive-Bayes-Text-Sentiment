@@ -59,7 +59,7 @@ def main():
     C_NBT_CV = NaiveBayesText(alpha=1e-10, max_features=None)  # Posem 1e-10 per simular que es zero (NO APLIQUEM LAPLACE SMOOTHING).
     C_NBT_CV.fit(X_train, y_train)
     # Perform cross-validation
-    cross_val_scores = cross_validation(C_NBT_CV, X, y, cv=10)
+    cross_val_scores = cross_validation(C_NBT_CV, X_train, y_train, cv=10)
     print("Accuracy Average CV: ", np.mean(cross_val_scores))
 
     y_pred = C_NBT_CV.predict(X_test)
@@ -97,7 +97,7 @@ def main():
     print("############################## APARTADO B ####################################")
     print("CROSS VALIDATION - METRIC: ACCURACY")
     train_sizes = [0.6, 0.7, 0.8, 0.9]  # Modify this list according to your needs
-    dict_sizes = [100000, 500000, 1000000, None]  # Modify this list according to your needs
+    dict_sizes = [50000, 100000, 500000, None]  # Modify this list according to your needs
 
     for train_size in train_sizes:
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=1 - train_size, random_state=42, stratify=y)
@@ -105,7 +105,7 @@ def main():
             B_NBT_CV = NaiveBayesText(alpha=1e-10, max_features=dict_size)  # Posem 1e-10 per simular que es zero (NO APLIQUEM LAPLACE SMOOTHING).
             B_NBT_CV.fit(X_train, y_train)
             # Perform cross-validation
-            cross_val_scores = cross_validation(B_NBT_CV, X, y, cv=10)
+            cross_val_scores = cross_validation(B_NBT_CV, X_train, y_train, cv=10)
             print(
                 f"Train size: {train_size}, Dict size: {dict_size if dict_size is not None else 'all'}, Accuracy Average CV: ",
                 np.mean(cross_val_scores))
@@ -125,7 +125,7 @@ def main():
     print("############################## APARTADO A ####################################")
     print("CROSS VALIDATION - METRIC: ACCURACY")
     train_sizes = [0.6, 0.7, 0.8, 0.9]  # Modify this list according to your needs
-    dict_sizes = [100000, 500000, 1000000, None]  # Modify this list according to your needs
+    dict_sizes = [50000, 100000, 500000, None]  # Modify this list according to your needs
 
     for train_size in train_sizes:
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=1 - train_size, random_state=42, stratify=y)
@@ -133,7 +133,7 @@ def main():
             A_NBT_CV = NaiveBayesText(alpha=1, max_features=dict_size)  # ARA SI APLIQUEM LAPLACE SMOOTHING.
             A_NBT_CV.fit(X_train, y_train)
             # Perform cross-validation
-            cross_val_scores = cross_validation(A_NBT_CV, X, y, cv=10)
+            cross_val_scores = cross_validation(A_NBT_CV, X_train, y_train, cv=10)
             print(
                 f"Train size: {train_size}, Dict size: {dict_size if dict_size is not None else 'all'}, Accuracy Average CV: ",
                 np.mean(cross_val_scores))
